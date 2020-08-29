@@ -26,15 +26,17 @@ func main() {
 	db, err := setupDatabase()
 	if err != nil {
 		log.Warn(err)
+	} else if db == nil {
+		log.Fatal("Database setup returns null")
 	}
 	defer db.Close()
 
 	// Setup Server
 	router := mux.NewRouter()
-	err = routes.NewServer(router, db)
-	if err != nil {
-		log.Fatal(err)
+	if router == nil {
+		log.Fatal("Router creation returns null")
 	}
+	routes.SetupServer(router, db)
 
 	server := &http.Server{
 		Handler:      router,

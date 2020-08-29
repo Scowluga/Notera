@@ -3,12 +3,20 @@ package impl
 import (
 	"github.com/Scowluga/Notera/server/models"
 	"github.com/Scowluga/Notera/server/persistence"
+	"github.com/Scowluga/Notera/server/repositories/interfaces"
 	"github.com/jinzhu/gorm"
 )
 
 // NoteRepositoryImpl ...
 type NoteRepositoryImpl struct {
 	db *gorm.DB
+}
+
+// NewNoteRepository generates a new note repository
+func NewNoteRepository(db *gorm.DB) interfaces.NoteRepository {
+	return &NoteRepositoryImpl{
+		db: db,
+	}
 }
 
 // CreateNote ...
