@@ -40,7 +40,7 @@ func main() {
 
 	server := &http.Server{
 		Handler:      router,
-		Addr:         "localhost:8080",
+		Addr:         "localhost:" + os.Getenv("PORT"),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -51,8 +51,6 @@ func main() {
 
 func setupDatabase() (*gorm.DB, error) {
 	connStr := os.Getenv("DATABASE_CONNECTION_STRING")
-
-	log.Infof("Connecting to PostgreSQL database: %s", os.Getenv("DBNAME"))
 	db, err := gorm.Open("postgres", connStr)
 
 	if err != nil {
@@ -65,9 +63,12 @@ func setupDatabase() (*gorm.DB, error) {
 		db.Model(&models.Note{}).Create(&models.Note{
 			MediaID:   "id_Eroica",
 			UserID:    "id_David",
-			Timestamp: 3012020,
+			Timestamp: 420,
 			Text:      "This slaaps",
 		})
+		log.Infof("Connected to empty postgres, created notes table and pre-populated with single note")
+	} else {
+		log.Infof("Connected to postgres")
 	}
 
 	return db, nil
