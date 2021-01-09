@@ -33,6 +33,7 @@ func Setup(router *mux.Router, db *gorm.DB, noteRepository repository_interfaces
 	note.Router.HandleFunc("/notes/user/{userID}", note.UserHandler).Methods("GET")
 
 	note.Router.HandleFunc("/notes/", note.UpdateHandler).Methods("PUT")
+	note.Router.HandleFunc("/notes/{noteID}", note.DeleteHandler).Methods("DELETE")
 }
 
 func (sr *NoteSubRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,6 +72,18 @@ func (sr *NoteSubRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	util.Respond(w, http.StatusOK, map[string]interface{} {
 		"note": util.GenerateNoteResponse(&note),
 	})
+}
+
+func (sr *NoteSubRouter) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	noteID := vars["noteID"]
+
+	if err := sr.noteRepository.DeleteNote(sr.Db, noteID); err != nil {
+		log.WithError(err).Warn("DeleteHandler")
+		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
+	}	
+
+	util.Empty(w)
 }
 
 // MediaHandler handles getting all notes for a specific media
