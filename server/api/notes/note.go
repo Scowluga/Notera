@@ -18,7 +18,6 @@ type NoteSubRouter struct {
 	noteRepository repository_interfaces.NoteRepository
 }
 
-// Setup for notes endpoint
 func Setup(router *mux.Router, db *gorm.DB, noteRepository repository_interfaces.NoteRepository) {
 	note := NoteSubRouter{
 		noteRepository: noteRepository,
@@ -32,9 +31,10 @@ func Setup(router *mux.Router, db *gorm.DB, noteRepository repository_interfaces
 
 	note.Router.HandleFunc("/notes/media/{mediaID}", note.MediaHandler).Methods("GET")
 	note.Router.HandleFunc("/notes/user/{userID}", note.UserHandler).Methods("GET")
+
+	note.Router.HandleFunc("/notes/", note.UpdateHandler).Methods("PUT")
 }
 
-// CreateHandler creates notes
 func (sr *NoteSubRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var note models.Note 
@@ -46,6 +46,25 @@ func (sr *NoteSubRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	
 	if err := sr.noteRepository.CreateNote(sr.Db, &note); err != nil {
 		log.WithError(err).Warn("CreateHandler")
+		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
+	}
+
+	util.Respond(w, http.StatusOK, map[string]interface{} {
+		"note": util.GenerateNoteResponse(&note),
+	})
+}
+
+func (sr *NoteSubRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var note models.Note 
+
+	if err := decoder.Decode(&note); err != nil {
+		log.WithError(err).Warn("UpdateHandler")
+		util.Respond(w, http.StatusBadRequest, util.Message(err.Error()))
+	} 
+	
+	if err := sr.noteRepository.UpdateNote(sr.Db, &note); err != nil {
+		log.WithError(err).Warn("UpdateHandler")
 		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
 	}
 
