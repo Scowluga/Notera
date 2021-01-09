@@ -5,7 +5,7 @@ import (
 )
 
 type NoteResponse struct {
-	ID 			uint 
+	ID			uint 
 	MediaID 	string 
 	UserID 		string 
 	Timestamp 	int 

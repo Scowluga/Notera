@@ -20,12 +20,10 @@ type NoteSubRouter struct {
 
 func Setup(router *mux.Router, db *gorm.DB, noteRepository repository_interfaces.NoteRepository) {
 	note := NoteSubRouter{
+		Router: router,
+		Db: db,
 		noteRepository: noteRepository,
 	}
-
-	note.Router = router
-
-	note.Db = db
 
 	note.Router.HandleFunc("/notes/", note.CreateHandler).Methods("POST")
 
@@ -53,37 +51,6 @@ func (sr *NoteSubRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	util.Respond(w, http.StatusOK, map[string]interface{} {
 		"note": util.GenerateNoteResponse(&note),
 	})
-}
-
-func (sr *NoteSubRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var note models.Note 
-
-	if err := decoder.Decode(&note); err != nil {
-		log.WithError(err).Warn("UpdateHandler")
-		util.Respond(w, http.StatusBadRequest, util.Message(err.Error()))
-	} 
-	
-	if err := sr.noteRepository.UpdateNote(sr.Db, &note); err != nil {
-		log.WithError(err).Warn("UpdateHandler")
-		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
-	}
-
-	util.Respond(w, http.StatusOK, map[string]interface{} {
-		"note": util.GenerateNoteResponse(&note),
-	})
-}
-
-func (sr *NoteSubRouter) DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	noteID := vars["noteID"]
-
-	if err := sr.noteRepository.DeleteNote(sr.Db, noteID); err != nil {
-		log.WithError(err).Warn("DeleteHandler")
-		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
-	}	
-
-	util.Empty(w)
 }
 
 // MediaHandler handles getting all notes for a specific media
@@ -130,4 +97,35 @@ func (sr *NoteSubRouter) UserHandler(w http.ResponseWriter, r *http.Request) {
 	util.Respond(w, http.StatusOK, map[string]interface{} {
 		"notes": res,
 	})
+}
+
+func (sr *NoteSubRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var note models.Note 
+
+	if err := decoder.Decode(&note); err != nil {
+		log.WithError(err).Warn("UpdateHandler")
+		util.Respond(w, http.StatusBadRequest, util.Message(err.Error()))
+	} 
+	
+	if err := sr.noteRepository.UpdateNote(sr.Db, &note); err != nil {
+		log.WithError(err).Warn("UpdateHandler")
+		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
+	}
+
+	util.Respond(w, http.StatusOK, map[string]interface{} {
+		"note": util.GenerateNoteResponse(&note),
+	})
+}
+
+func (sr *NoteSubRouter) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	noteID := vars["noteID"]
+
+	if err := sr.noteRepository.DeleteNote(sr.Db, noteID); err != nil {
+		log.WithError(err).Warn("DeleteHandler")
+		util.Respond(w, http.StatusInternalServerError, util.Message(err.Error()))
+	}	
+
+	util.Empty(w)
 }
