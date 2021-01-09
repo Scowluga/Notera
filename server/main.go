@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
-	"time"
+	"fmt"
 
 	routes "github.com/Scowluga/Notera/server/api"
 	"github.com/Scowluga/Notera/server/models"
@@ -38,15 +38,9 @@ func main() {
 	}
 	routes.SetupServer(router, db)
 
-	server := &http.Server{
-		Handler:      router,
-		Addr:         "localhost:" + os.Getenv("PORT"),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	log.Infof("Starting server on port: %s", os.Getenv("PORT"))
-	log.Fatal(server.ListenAndServe())
+	port := os.Getenv("SERVER_PORT")
+	log.Infof("Starting server on port: %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
 
 func setupDatabase() (*gorm.DB, error) {
