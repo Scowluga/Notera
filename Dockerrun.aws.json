@@ -1,0 +1,11 @@
+{
+    "AWSEBDockerrunVersion": "1", 
+    "Image": {
+        "Name": "scowluga/notera:v1"
+    }, 
+    "Ports": [
+        {
+            "ContainerPort": "8080"
+        }
+    ]
+}
