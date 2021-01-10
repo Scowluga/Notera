@@ -10,6 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 
+	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
@@ -25,18 +26,19 @@ func main() {
 	// Setup DB
 	db, err := setupDatabase()
 	if err != nil {
-		log.Warn(err)
-	} else if db == nil {
-		log.Fatal("Database setup returns null")
+		log.Fatal(err)
 	}
 	defer db.Close()
+
+	// Setup Redis
+	redis := setupCache()
 
 	// Setup Server
 	router := mux.NewRouter()
 	if router == nil {
 		log.Fatal("Router creation returns null")
 	}
-	routes.SetupServer(router, db)
+	routes.SetupServer(router, db, redis)
 
 	port := os.Getenv("SERVER_PORT")
 	log.Infof("Starting server on port: %s", port)
@@ -66,4 +68,21 @@ func setupDatabase() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func setupCache() *redis.Client {
+	client := redis.NewClient(&redis.Options {
+		Addr: 		os.Getenv("REDIS_URL"),
+		Password:	"",
+		DB: 		0,
+	})
+
+	pong, err := client.Ping().Result()
+	if err != nil {
+		log.Warn("Couldn't establish redis client with error: " + err.Error())
+	} else {
+		log.Infof("Connected to redis: " + pong)
+	}
+
+	return client
 }
