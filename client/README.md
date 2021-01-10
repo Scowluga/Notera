@@ -1,4 +1,4 @@
-# Notera Frontend
+# Notera Client
 
-This repository contains the source code for Notera Frontend. WIP. 
+The Notera Client is built using React, and is in-progress. 
 
